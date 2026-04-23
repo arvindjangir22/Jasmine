@@ -54,7 +54,7 @@ with st.sidebar:
     st.title("⚙️ Navigation")
     page = st.radio(
         "Go to",
-        ["📊 Dashboard Overview", "👥 Client Management", "🏕️ Retreat Planner", "💰 Financial Summary"],
+        ["📊 Dashboard Overview", "👥 Client Management", "🏕️ Retreat Planner", "💰 Financial Summary", "🧭 Business Plan"],
         label_visibility="collapsed",
     )
     st.divider()
@@ -464,6 +464,172 @@ elif page == "💰 Financial Summary":
     csv = df_pnl.to_csv(index=False)
     st.download_button("📥 Download P&L as CSV", csv, "profit_and_loss.csv", "text/csv")
 
+
+
+
+# ═══════════════════════════════════════════════
+# 🧭 BUSINESS PLAN
+# ═══════════════════════════════════════════════
+elif page == "🧭 Business Plan":
+    st.header("🧭 Business Plan")
+    st.markdown("A structured, editable business plan for your coaching + meditation + retreats brand.")
+    st.divider()
+
+    # Prefill from Elovate.co (editable)
+    default_mission = (
+        "Through psycho-spiritual coaching, meditation, and energy healing, support people to transform grief, "
+        "life transitions, and deeper patterns into sustainable growth and inner clarity."
+    )
+    default_positioning = (
+        "Psycho-spiritual coaching + meditation guidance rooted in psychology, spirituality, and trauma-informed practices."
+    )
+
+    offerings_seed = [
+        {"Offering": "Psycho-spiritual Coaching", "Format": "1:1", "Price": 180, "Notes": "Deep integrative space for healing, insight, inner transformation"},
+        {"Offering": "Healing Meditations", "Format": "1:1", "Price": 120, "Notes": "Guided meditation + chakra healing/balancing + grounding"},
+        {"Offering": "Relationship Coaching", "Format": "1:1", "Price": 180, "Notes": "Awareness, emotional clarity, boundaries, attachment & patterns"},
+        {"Offering": "Workshops / Events", "Format": "Group", "Price": 55, "Notes": "Example: workshop investment"},
+        {"Offering": "Workplace Wellness", "Format": "B2B", "Price": 0, "Notes": "Custom pricing; culture, burnout, wellbeing programs"},
+        {"Offering": "Retreats", "Format": "Group", "Price": 500, "Notes": "Model pricing/margins in Retreat Planner"},
+    ]
+
+    t1, t2, t3, t4 = st.tabs(["🧬 Brand", "🧾 Offerings & Pricing", "📣 Marketing & Funnel", "🎯 Goals & KPIs"])
+
+    with t1:
+        st.subheader("🧬 Brand & Positioning")
+        st.text_input("Brand Name", value="Elovate")
+        st.text_area("Mission / Purpose", value=default_mission, height=120)
+        st.text_area("Positioning Statement", value=default_positioning, height=100)
+
+        st.markdown("**Business pillars (edit):**")
+        p1, p2, p3 = st.columns(3)
+        with p1:
+            st.checkbox("Coaching", value=True)
+        with p2:
+            st.checkbox("Consulting", value=True)
+        with p3:
+            st.checkbox("Community", value=True)
+
+        st.divider()
+        st.subheader("👥 Ideal Client Segments")
+        s1, s2 = st.columns(2)
+        with s1:
+            st.checkbox("Life transitions / grief / burnout", value=True)
+            st.checkbox("Psycho-spiritual growth + integration", value=True)
+            st.checkbox("Relationships / boundaries / attachment patterns", value=True)
+        with s2:
+            st.checkbox("Corporate/startups for wellness workshops", value=True)
+            st.checkbox("Community events (dinners, rituals)", value=True)
+            st.checkbox("Retreat participants", value=True)
+
+        st.divider()
+        st.subheader("✨ Value Proposition")
+        st.markdown(
+            "- Psychology + spirituality blended into practical tools
+"
+            "- Trauma-informed, embodied practices (somatic attunement, meditation)
+"
+            "- Clear containers: 1:1 coaching, healing sessions, groups, and retreats"
+        )
+
+    with t2:
+        st.subheader("🧾 Offerings, Pricing & Revenue Assumptions")
+        df_off = pd.DataFrame(offerings_seed)
+        df_off = st.data_editor(
+            df_off,
+            use_container_width=True,
+            hide_index=True,
+            num_rows="dynamic",
+            column_config={
+                "Price": st.column_config.NumberColumn("Price ($)", min_value=0, step=5),
+            },
+        )
+
+        st.divider()
+        st.subheader("📦 Monthly Volume Assumptions")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            m_psy = st.number_input("Psycho-spiritual Coaching sessions / month", value=12, min_value=0, step=1)
+            m_med = st.number_input("Healing Meditation sessions / month", value=10, min_value=0, step=1)
+        with c2:
+            m_rel = st.number_input("Relationship Coaching sessions / month", value=8, min_value=0, step=1)
+            m_workshop_att = st.number_input("Workshop attendees / month", value=20, min_value=0, step=1)
+        with c3:
+            workshop_price = st.number_input("Avg workshop ticket ($)", value=55, min_value=0, step=5)
+            b2b_monthly = st.number_input("B2B revenue / month ($)", value=0, min_value=0, step=100)
+
+        def price_of(contains, fallback):
+            try:
+                row = df_off[df_off["Offering"].str.contains(contains, case=False, na=False)].iloc[0]
+                v = row.get("Price", fallback)
+                return float(v) if pd.notna(v) else float(fallback)
+            except Exception:
+                return float(fallback)
+
+        monthly_rev = (
+            m_psy * price_of("Psycho", 180)
+            + m_med * price_of("Medit", 120)
+            + m_rel * price_of("Relationship", 180)
+            + m_workshop_att * workshop_price
+            + b2b_monthly
+        )
+        st.metric("Estimated Monthly Revenue", f"${monthly_rev:,.0f}")
+        st.caption("Note: Retreat revenue/costs are modeled in the Retreat Planner tab.")
+
+    with t3:
+        st.subheader("📣 Marketing Channels & Funnel")
+        left, right = st.columns(2)
+        with left:
+            st.markdown("**Channels to track**")
+            st.multiselect(
+                "",
+                ["Website", "SEO", "Instagram", "YouTube", "Podcast", "Email Newsletter", "Partnerships", "Workshops", "Referrals"],
+                default=["Website", "Instagram", "Partnerships", "Referrals"],
+                label_visibility="collapsed",
+            )
+            st.text_area(
+                "Core Content Themes",
+                value="Rest / nervous system · relationships · grief & transitions · psycho-spiritual integration",
+                height=100,
+            )
+        with right:
+            st.markdown("**Monthly funnel metrics**")
+            leads = st.number_input("Leads", value=40, min_value=0, step=5)
+            discovery = st.number_input("Discovery calls", value=12, min_value=0, step=1)
+            new_clients = st.number_input("New clients", value=6, min_value=0, step=1)
+            conv = (new_clients / discovery * 100) if discovery else 0
+            st.metric("Discovery → Client Conversion", f"{conv:.1f}%")
+
+        st.divider()
+        st.subheader("🧩 Lead-to-Revenue")
+        avg_value = st.number_input("Avg monthly value per new client ($)", value=360, min_value=0, step=10)
+        st.metric("Projected New Monthly Recurring Revenue", f"${(new_clients*avg_value):,.0f}")
+
+    with t4:
+        st.subheader("🎯 Goals & KPIs")
+        g1, g2, g3 = st.columns(3)
+        with g1:
+            target_rev = st.number_input("Target Monthly Revenue ($)", value=8000, min_value=0, step=250)
+        with g2:
+            st.slider("Target Profit Margin (%)", 0, 80, 40)
+        with g3:
+            fixed_costs = st.number_input("Fixed Monthly Costs ($)", value=1200, min_value=0, step=50)
+
+        profit = monthly_rev - fixed_costs
+        margin = (profit / monthly_rev * 100) if monthly_rev else 0
+        k1, k2, k3 = st.columns(3)
+        k1.metric("Estimated Monthly Profit", f"${profit:,.0f}")
+        k2.metric("Estimated Margin", f"{margin:.1f}%")
+        k3.metric("Gap to Revenue Target", f"${(target_rev - monthly_rev):,.0f}")
+
+        st.divider()
+        st.subheader("✅ 30-60-90 Day Action Plan")
+        plan = pd.DataFrame([
+            {"Horizon": "30 Days", "Focus": "Clarify offers + packages", "Action": "Finalize 2-3 signature containers + pricing", "Owner": "You", "Status": "Planned"},
+            {"Horizon": "60 Days", "Focus": "Content + partnerships", "Action": "Publish weekly content + 2 partner collabs", "Owner": "You", "Status": "Planned"},
+            {"Horizon": "90 Days", "Focus": "Events + scalable offer", "Action": "Run 1 workshop + plan 1 retreat/mini-immersion", "Owner": "You", "Status": "Planned"},
+        ])
+        st.data_editor(plan, use_container_width=True, hide_index=True, num_rows="dynamic")
 
 # ─── Footer ───
 st.divider()
