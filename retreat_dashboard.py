@@ -525,10 +525,8 @@ elif page == "🧭 Business Plan":
         st.divider()
         st.subheader("✨ Value Proposition")
         st.markdown(
-            "- Psychology + spirituality blended into practical tools
-"
-            "- Trauma-informed, embodied practices (somatic attunement, meditation)
-"
+            "- Psychology + spirituality blended into practical tools\n"
+            "- Trauma-informed, embodied practices (somatic attunement, meditation)\n"
             "- Clear containers: 1:1 coaching, healing sessions, groups, and retreats"
         )
 
